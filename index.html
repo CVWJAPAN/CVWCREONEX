@@ -2,18 +2,18 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>CHAGAデジタル相談室</title>
+    <title>デジタル児童相談所（プロトタイプ）</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body { font-family: "Arial", sans-serif; background: #f0f8ff; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
-        header { background: #0099cc; color: white; padding: 1em; text-align: center; font-size: 1.2em; }
+        header { background: #ff6347; color: white; padding: 1em; text-align: center; font-size: 1.2em; }
         #chatbox { flex: 1; overflow-y: auto; padding: 1em; background: #fff; }
         .msg { margin: 0.5em 0; padding: 0.5em 1em; border-radius: 5px; max-width: 80%; }
         .user { color: blue; text-align: right; background: #e6f3ff; margin-left: auto; }
         .bot { color: green; text-align: left; background: #e6ffe6; margin-right: auto; }
         #inputArea { display: flex; padding: 1em; background: #f0f0f0; }
         #userInput { flex: 1; padding: 0.8em; font-size: 1em; border: 1px solid #ccc; border-radius: 5px; }
-        button { margin-left: 0.5em; padding: 0.8em 1em; background: #0099cc; color: white; border: none; border-radius: 5px; font-size: 1em; cursor: pointer; }
+        button { margin-left: 0.5em; padding: 0.8em 1em; background: #ff6347; color: white; border: none; border-radius: 5px; font-size: 1em; cursor: pointer; }
         button:disabled { background: #666; cursor: not-allowed; }
         @media (max-width: 600px) {
             header { font-size: 1em; }
@@ -22,9 +22,9 @@
     </style>
 </head>
 <body>
-    <header>CHAGAデジタル相談室</header>
+    <header>デジタル児童相談所（プロトタイプ）</header>
     <div id="chatbox" role="log" aria-live="polite">
-        <div class="msg bot">こんにちは！何でも話してね。</div>
+        <div class="msg bot">こんにちは！何かお困りですか？匿名で相談できますよ。</div>
     </div>
     <div id="inputArea">
         <input type="text" id="userInput" placeholder="ここに入力..." aria-label="メッセージ入力" />
@@ -35,7 +35,6 @@
         const input = document.getElementById("userInput");
         const chatbox = document.getElementById("chatbox");
         const button = document.querySelector("button");
-        const API_KEY = "xai-KwwUVf9xPs3IC4kRkP4Z20tdhi2R3DuppsVsJfLU2F1TphbnOY526GpxwBJm8soxq4iTRDsF38tZ7JaZ"; // テスト用。本番ではサーバーサイドで管理
 
         input.addEventListener("keypress", (e) => {
             if (e.key === "Enter") sendMessage();
@@ -45,6 +44,7 @@
             const userText = input.value.trim();
             if (!userText) return;
 
+            // ユーザーメッセージを表示
             const userMsg = document.createElement("div");
             userMsg.className = "msg user";
             userMsg.textContent = "あなた: " + userText;
@@ -60,28 +60,31 @@
             button.disabled = true;
 
             try {
-                const requestBody = {
-                    model: "grok-3",
-                    messages: [{ role: "user", content: userText }],
-                    max_tokens: 200,
-                    temperature: 0.7
-                };
-                console.log("Request:", JSON.stringify(requestBody, null, 2)); // デバッグ用
-                const response = await fetch("https://api.x.ai/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${API_KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(requestBody)
-                });
+                // モック応答（API利用前にシミュレーション）
+                let mockResponse = "";
+                if (userText.includes("虐待") || userText.includes("いじめ")) {
+                    mockResponse = "AI: それはとても深刻な状況ですね。まず安全を確保してください。日本では児童相談所全国共通ダイヤル「189」に電話できます（24時間対応）。また、警察（110）も選択肢です。詳細を教えてください。";
+                } else if (userText.includes("相談")) {
+                    mockResponse = "AI: 安心して相談してください。どのようなお話をしましょうか？例えば、学校での悩み、家庭のことなど、なんでも大丈夫です。";
+                } else {
+                    mockResponse = "AI: もう少し詳しく教えていただけますか？お話を伺って、適切な支援を提案します。";
+                }
 
+                // 課金後に以下を有効化（Grok API呼び出し）
+                /*
+                const response = await fetch("http://localhost:3000/api/child-welfare", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: userText })
+                });
                 const data = await response.json();
-                if (!response.ok) throw new Error(`APIエラー: ${response.status} - ${data.error?.message || response.statusText}`);
-                botMsg.textContent = "AI: " + (data.choices[0]?.message?.content || "応答がありません");
+                botMsg.textContent = "AI: " + data.reply;
+                */
+
+                // モック応答を表示
+                botMsg.textContent = mockResponse;
             } catch (error) {
                 botMsg.textContent = "AI: エラー: " + error.message;
-                console.error("Error details:", error); // デバッグ用
             } finally {
                 button.disabled = false;
                 chatbox.scrollTop = chatbox.scrollHeight;
