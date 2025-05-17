@@ -2,94 +2,109 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>デジタル児童相談所（プロトタイプ）</title>
+    <title>デジタル児童相談所＆教育支援（プロトタイプ）</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: "Arial", sans-serif; background: #f0f8ff; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
-        header { background: #ff6347; color: white; padding: 1em; text-align: center; font-size: 1.2em; }
-        #chatbox { flex: 1; overflow-y: auto; padding: 1em; background: #fff; }
-        .msg { margin: 0.5em 0; padding: 0.5em 1em; border-radius: 5px; max-width: 80%; }
-        .user { color: blue; text-align: right; background: #e6f3ff; margin-left: auto; }
-        .bot { color: green; text-align: left; background: #e6ffe6; margin-right: auto; }
-        #inputArea { display: flex; padding: 1em; background: #f0f0f0; }
-        #userInput { flex: 1; padding: 0.8em; font-size: 1em; border: 1px solid #ccc; border-radius: 5px; }
-        button { margin-left: 0.5em; padding: 0.8em 1em; background: #ff6347; color: white; border: none; border-radius: 5px; font-size: 1em; cursor: pointer; }
-        button:disabled { background: #666; cursor: not-allowed; }
+        body { font-family: "Arial", sans-serif; background: #f0fff0; margin: 0; padding: 0; }
+        header { background: #32cd32; color: white; padding: 1em; text-align: center; font-size: 1.2em; }
+        .tabs { display: flex; justify-content: center; gap: 1em; padding: 1em; background: #f0f0f0; }
+        .tabs button { padding: 0.5em 1em; background: #32cd32; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .tabs button.active { background: #228b22; }
+        .form-container { padding: 1em; text-align: center; }
+        #queryInput { width: 80%; padding: 0.8em; font-size: 1em; border: 1px solid #ccc; border-radius: 5px; }
+        #submitBtn { padding: 0.8em 1em; background: #32cd32; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 0.5em; }
+        #submitBtn:disabled { background: #666; cursor: not-allowed; }
+        #results { padding: 1em; display: flex; flex-direction: column; align-items: center; gap: 1em; }
+        .card { background: #fff; border: 1px solid #ccc; border-radius: 5px; padding: 1em; width: 80%; max-width: 600px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .card h3 { margin: 0 0 0.5em; color: #228b22; }
+        .card p { margin: 0; }
         @media (max-width: 600px) {
             header { font-size: 1em; }
-            button { font-size: 0.9em; padding: 0.6em 0.8em; }
+            #queryInput { width: 70%; }
+            .card { width: 90%; }
         }
     </style>
 </head>
 <body>
-    <header>デジタル児童相談所（プロトタイプ）</header>
-    <div id="chatbox" role="log" aria-live="polite">
-        <div class="msg bot">こんにちは！何かお困りですか？匿名で相談できますよ。</div>
+    <header>デジタル児童相談所＆教育支援（プロトタイプ）</header>
+    <div class="tabs">
+        <button id="consultationTab" class="active" onclick="switchTab('consultation')">児童相談</button>
+        <button id="educationTab" onclick="switchTab('education')">教育支援</button>
     </div>
-    <div id="inputArea">
-        <input type="text" id="userInput" placeholder="ここに入力..." aria-label="メッセージ入力" />
-        <button onclick="sendMessage()" aria-label="メッセージを送信">送信</button>
+    <div class="form-container">
+        <input type="text" id="queryInput" placeholder="質問や相談内容を入力..." aria-label="質問入力" />
+        <button id="submitBtn" onclick="submitQuery()">送信</button>
+    </div>
+    <div id="results">
+        <div class="card">
+            <h3>ようこそ！</h3>
+            <p>上記のタブから「児童相談」または「教育支援」を選び、質問を入力してください。</p>
+        </div>
     </div>
 
     <script>
-        const input = document.getElementById("userInput");
-        const chatbox = document.getElementById("chatbox");
-        const button = document.querySelector("button");
+        let currentTab = "consultation";
 
-        input.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") sendMessage();
-        });
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById("consultationTab").classList.toggle("active", tab === "consultation");
+            document.getElementById("educationTab").classList.toggle("active", tab === "education");
+            document.getElementById("results").innerHTML = `<div class="card"><h3>${tab === "consultation" ? "児童相談" : "教育支援"}</h3><p>質問を入力してください。</p></div>`;
+        }
 
-        async function sendMessage() {
-            const userText = input.value.trim();
+        async function submitQuery() {
+            const queryInput = document.getElementById("queryInput");
+            const submitBtn = document.getElementById("submitBtn");
+            const results = document.getElementById("results");
+            const userText = queryInput.value.trim();
             if (!userText) return;
 
-            // ユーザーメッセージを表示
-            const userMsg = document.createElement("div");
-            userMsg.className = "msg user";
-            userMsg.textContent = "あなた: " + userText;
-            chatbox.appendChild(userMsg);
-            input.value = "";
-
-            const botMsg = document.createElement("div");
-            botMsg.className = "msg bot";
-            botMsg.textContent = "処理中...";
-            chatbox.appendChild(botMsg);
-            chatbox.scrollTop = chatbox.scrollHeight;
-
-            button.disabled = true;
+            submitBtn.disabled = true;
+            results.innerHTML = `<div class="card"><h3>処理中...</h3><p>少々お待ちください。</p></div>`;
 
             try {
                 // モック応答（API利用前にシミュレーション）
                 let mockResponse = "";
-                if (userText.includes("虐待") || userText.includes("いじめ")) {
-                    mockResponse = "AI: それはとても深刻な状況ですね。まず安全を確保してください。日本では児童相談所全国共通ダイヤル「189」に電話できます（24時間対応）。また、警察（110）も選択肢です。詳細を教えてください。";
-                } else if (userText.includes("相談")) {
-                    mockResponse = "AI: 安心して相談してください。どのようなお話をしましょうか？例えば、学校での悩み、家庭のことなど、なんでも大丈夫です。";
+                if (currentTab === "consultation") {
+                    if (userText.includes("虐待") || userText.includes("いじめ")) {
+                        mockResponse = "それはとても深刻な状況ですね。まず安全を確保してください。日本では児童相談所全国共通ダイヤル「189」に電話できます（24時間対応）。また、警察（110）も選択肢です。詳細を教えてください。";
+                    } else {
+                        mockResponse = "安心して相談してください。どのようなお話をしましょうか？";
+                    }
                 } else {
-                    mockResponse = "AI: もう少し詳しく教えていただけますか？お話を伺って、適切な支援を提案します。";
+                    if (userText.includes("算数") || userText.includes("計算")) {
+                        mockResponse = "算数ですね！例えば「5＋3はいくつ？」のような問題でしょうか？答えは8です。問題があれば教えてください！また、NHK for School（<a href='https://www.nhk.or.jp/school/' target='_blank'>リンク</a>）で算数の動画が見られますよ。";
+                    } else if (userText.includes("勉強") || userText.includes("学習")) {
+                        mockResponse = "勉強のコツをお伝えします！毎日少しずつ計画を立てて進めると効果的です。文部科学省の学習支援サイト（<a href='https://www.mext.go.jp' target='_blank'>リンク</a>）も参考になります。どのような科目が知りたいですか？";
+                    } else {
+                        mockResponse = "もう少し詳しく教えていただけますか？例えば、科目や学習方法についての質問など、なんでも大丈夫です！";
+                    }
                 }
 
                 // 課金後に以下を有効化（Grok API呼び出し）
                 /*
-                const response = await fetch("http://localhost:3000/api/child-welfare", {
+                const response = await fetch(`http://localhost:3000/api/${currentTab === "consultation" ? "child-welfare" : "education-support"}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ message: userText })
                 });
                 const data = await response.json();
-                botMsg.textContent = "AI: " + data.reply;
+                results.innerHTML = `<div class="card"><h3>回答</h3><p>${data.reply}</p></div>`;
                 */
 
                 // モック応答を表示
-                botMsg.textContent = mockResponse;
+                results.innerHTML = `<div class="card"><h3>回答</h3><p>${mockResponse}</p></div>`;
             } catch (error) {
-                botMsg.textContent = "AI: エラー: " + error.message;
+                results.innerHTML = `<div class="card"><h3>エラー</h3><p>${error.message}</p></div>`;
             } finally {
-                button.disabled = false;
-                chatbox.scrollTop = chatbox.scrollHeight;
+                submitBtn.disabled = false;
+                queryInput.value = "";
             }
         }
+
+        document.getElementById("queryInput").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") submitQuery();
+        });
     </script>
 </body>
 </html>
