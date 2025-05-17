@@ -3,7 +3,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>CHAGAデジタル相談室（本番版）</title>
+    <title>CHAGAデジタル相談室（Cloud Run接続）</title>
     <style>
         body { font-family: "Arial", sans-serif; background: #eef8ff; padding: 20px; }
         #chatbox { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: scroll; background: #fff; }
@@ -15,7 +15,7 @@
     </style>
 </head>
 <body>
-    <h1>CHAGAデジタル相談室</h1>
+    <h1>CHAGAデジタル相談室（Cloud Run）</h1>
     <div id="chatbox">
         <div class="msg bot">こんにちは。なやみがあったら、なんでも話してね！</div>
     </div>
@@ -23,7 +23,7 @@
     <button onclick="sendMessage()">送信</button>
 
     <script>
-        const FUNCTION_URL = "https://YOUR_CLOUD_FUNCTION_URL_HERE"; // ← 実URLに置き換える必要あり
+        const FUNCTION_URL = "https://chagasoudan-408685148315.asia-northeast1.run.app";
 
         async function sendMessage() {
             const input = document.getElementById("userInput");
