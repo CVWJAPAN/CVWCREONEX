@@ -3,7 +3,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>CHAGAデジタル相談室（Cloud Functions連携版）</title>
+    <title>CHAGAデジタル相談室（簡易版）</title>
     <style>
         body { font-family: "Arial", sans-serif; background: #eef8ff; padding: 20px; }
         #chatbox { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: scroll; background: #fff; }
@@ -15,7 +15,7 @@
     </style>
 </head>
 <body>
-    <h1>CHAGAデジタル相談室</h1>
+    <h1>CHAGAデジタル相談室（簡易版）</h1>
     <div id="chatbox">
         <div class="msg bot">こんにちは。なやみがあったら、なんでも話してね！</div>
     </div>
@@ -33,16 +33,22 @@
             input.value = "";
 
             try {
-                const response = await fetch("https://YOUR_CLOUD_FUNCTION_URL_HERE", {
+                const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyCvl3ayl8ahk9Q-ZNB5-H9Ja8chv0sHawI", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ message: userText })
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: "あなたは子どもにやさしく話す相談員です。以下の相談にこたえてください。
+
+" + userText }]
+                        }]
+                    })
                 });
 
                 const data = await response.json();
-                const reply = data.reply || "[エラー] CHAGAが返答できません。";
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "[エラー] CHAGAが返答できません。";
                 chatbox.innerHTML += `<div class='msg bot'>CHAGA: ${reply}</div>`;
                 chatbox.scrollTop = chatbox.scrollHeight;
             } catch (error) {
